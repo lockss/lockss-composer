@@ -1,0 +1,111 @@
+#!/bin/bash
+#
+# Copyright (c) 2019 Board of Trustees of Leland Stanford Jr. University,
+# all rights reserved.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+# STANFORD UNIVERSITY BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+# IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+# Except as contained in this notice, the name of Stanford University shall not
+# be used in advertising or otherwise to promote the sale, use or other dealings
+# in this Software without prior written authorization from Stanford University.
+#
+
+usage() {
+  echo "Compose a single LAAWS service from several."
+  echo "Usage: $0 [-options] profile"
+  echo "profile is the name of the set of services to be composed"
+  echo "Options:"
+  echo "  -o <dir> The output directory. Default 'laaws_composed'"
+}
+
+# Remove the output directory.
+cleanup() {
+  /bin/rm -rf $output_dir
+}
+
+output_dir=laaws-composed
+compose_profile=
+
+# Process command line options.
+while [ -n "$1" ]; do
+  case "$1" in
+    "-o" )
+      output_dir="$2"
+      shift; shift; continue;;
+    -h )
+      usage
+      exit 0;;
+    * )
+      compose_profile="$1"
+      shift; continue;;
+  esac
+  break;
+done
+
+echo output_dir=$output_dir
+echo compose_profile=$compose_profile
+
+# Reset the contents of the output directory.
+cleanup
+/bin/mkdir ${output_dir}
+
+# Loop through all the projects to be composed.
+while read -u3 project_name; do
+  echo "Begin processing service $project_name"
+
+  # Get a clean copy of the project to be composed.
+  /bin/rm -rf ${project_name}
+  git clone -b develop https://github.com/lockss/${project_name}.git
+
+  # Generate the project code.
+  mvn -f ${project_name}/pom.xml generate-sources
+
+  # Remove project conflicting files.
+  /bin/rm -rf ${project_name}/src/generated/java/org/lockss/laaws/*/config
+  /bin/rm -rf ${project_name}/src/main/java/org/lockss/laaws/*/security
+  /bin/rm -f ${project_name}/src/main/java/org/lockss/laaws/*/*Application.java
+  /bin/rm -rf ${project_name}/src/main/resources/swagger
+
+  # Copy the project source code files to the output.
+  /bin/cp -r ${project_name}/src ${output_dir}
+
+  # Copy the project test files to the output.
+  if [ -d ${project_name}/test ]; then
+    /bin/cp -r ${project_name}/test ${output_dir}
+  fi
+
+  echo "End processing service $project_name"
+done 3< ${compose_profile}/projects
+
+# Copy the profile configuration files to the output.
+/bin/cp -r ${compose_profile}/config ${output_dir}
+
+# Copy the profile docker files to the output.
+/bin/cp -r ${compose_profile}/docker ${output_dir}
+
+# Copy the profile Docker configuration file to the output.
+/bin/cp ${compose_profile}/Dockerfile ${output_dir}
+
+# Copy the profile maven configuration file to the output.
+/bin/cp ${compose_profile}/pom.xml ${output_dir}
+
+# Overlay the profile source code files to the output.
+/bin/cp -r ${compose_profile}/src ${output_dir}
+
+# Overlay the profile test files to the output.
+/bin/cp -r ${compose_profile}/test ${output_dir}

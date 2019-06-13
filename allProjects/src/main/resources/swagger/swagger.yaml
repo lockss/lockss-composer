@@ -1,0 +1,2162 @@
+# Copyright (c) 2019, Board of Trustees of Leland Stanford Jr. University
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice,
+# this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its contributors
+# may be used to endorse or promote products derived from this software without
+# specific prior written permission. 
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
+swagger: "2.0"
+info:
+  title: "LOCKSS REST API"
+  version: "2.0.0"
+  description: "REST API of the LOCKSS Services"
+  contact:
+    name: "LOCKSS Support"
+    url: "https://www.lockss.org/"
+    email: "lockss-support@lockss.org"
+  license:
+    name: "BSD-3-Clause"
+    url: "https://opensource.org/licenses/BSD-3-Clause"
+host: "laaws.lockss.org:443"
+basePath: "/"
+tags:
+  - name: Default
+    description: Default section
+  - name: config
+    description: Tasks on the configuration
+  - name: aus
+    description: Tasks on the archival units (AUs)
+  - name: "mdupdates"
+    description: "Metadata updates"
+  - name: metadata
+    description: "Operations related to metadata"
+  - name: urls
+    description: "Operations that return URLs"
+schemes:
+  - "https"
+produces:
+  - "application/json"
+security:
+  - basicAuth: []
+paths:
+  '/config/file/{sectionName}':
+    put:
+      tags:
+        - config
+      summary: Store the named configuration file
+      description: Store the configuration file for a given name
+      operationId: putConfig
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - name: 'sectionName'
+          in: path
+          description: The name of the section for which the configuration file\
+            \ is to be stored
+          required: true
+          type: string
+        - name: 'configFile'
+          in: formData
+          description: The configuration file to be stored
+          required: true
+          type: file
+        - name: 'If-Match'
+          in: header
+          description: The If-Match header
+          required: false
+          type: string
+        - name: 'If-Modified-Since'
+          in: header
+          description: The If-Match header
+          required: false
+          type: string
+        - name: 'If-None-Match'
+          in: header
+          description: The If-Match header
+          required: false
+          type: string
+        - name: 'If-Unmodified-Since'
+          in: header
+          description: The If-Match header
+          required: false
+          type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+        '412':
+          description: Precondition failed
+        '415':
+          description: Unsupported Media Type
+        '500':
+          description: Internal Server Error
+    get:
+      tags:
+        - config
+      summary: Get the named configuration file
+      description: Get the configuration file stored for a given name
+      operationId: getSectionConfig
+      produces:
+        - multipart/form-data
+      parameters:
+        - name: 'sectionName'
+          in: path
+          description: The name of the section for which the configuration file\
+            \ is requested
+          required: true
+          type: string
+        - name: 'Accept'
+          in: header
+          description: The Accept header
+          required: true
+          type: string
+        - name: 'If-Match'
+          in: header
+          description: The If-Match header
+          required: false
+          type: string
+        - name: 'If-Modified-Since'
+          in: header
+          description: The If-Match header
+          required: false
+          type: string
+        - name: 'If-None-Match'
+          in: header
+          description: The If-Match header
+          required: false
+          type: string
+        - name: 'If-Unmodified-Since'
+          in: header
+          description: The If-Match header
+          required: false
+          type: string
+      responses:
+        '200':
+          description: The named configuration file
+          schema:
+            type: file
+        '304':
+          description: Not Modified
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+        '406':
+          description: Not Acceptable
+        '412':
+          description: Precondition failed
+        '500':
+          description: Internal Server Error
+  '/config/url':
+    get:
+      tags:
+        - config
+      summary: Get the configuration file for a URL
+      description: Get the configuration file stored for a given URL
+      operationId: getUrlConfig
+      produces:
+        - multipart/form-data
+      parameters:
+        - name: 'url'
+          in: 'query'
+          description: The URL for which the configuration is requested
+          required: true
+          type: string
+        - name: 'Accept'
+          in: header
+          description: The Accept header
+          required: true
+          type: string
+        - name: 'If-Match'
+          in: header
+          description: The If-Match header
+          required: false
+          type: string
+        - name: 'If-Modified-Since'
+          in: header
+          description: The If-Match header
+          required: false
+          type: string
+        - name: 'If-None-Match'
+          in: header
+          description: The If-Match header
+          required: false
+          type: string
+        - name: 'If-Unmodified-Since'
+          in: header
+          description: The If-Match header
+          required: false
+          type: string
+      responses:
+        '200':
+          description: The configuration file for the URL
+          schema:
+            type: file
+        '304':
+          description: Not Modified
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+        '406':
+          description: Not Acceptable
+        '412':
+          description: Precondition failed
+        '500':
+          description: Internal Server Error
+  '/config/loadedurls':
+    get:
+      tags:
+        - config
+      summary: Get the URLs from which the configuration was loaded
+      description: Get the URLs from which the configuration was actually\
+        \ loaded, reflecting any failover to local copies
+      operationId: getLoadedUrlList
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: The URLs from which the configuration was loaded
+          schema:
+            type: array
+            items:
+              type: string
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+  '/config/lastupdatetime':
+    get:
+      tags:
+        - config
+      summary: Get the timestamp when the configuration was last updated
+      description: Get the timestamp when the configuration was last updated
+      operationId: getLastUpdateTime
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: The timestamp when the configuration was last updated
+          schema:
+            type: string
+            format: date-time
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+  '/config/reload':
+    put:
+      tags:
+        - config
+      summary: Request a configuration reload
+      description: Request that the stored configuration is reloaded
+      operationId: putConfigReload
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: OK
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '500':
+          description: Internal Server Error
+  '/aus':
+    get:
+      tags:
+        - aus
+      summary: Get the configurations of all AUs
+      description: Get the configuration of all AUs
+      operationId: getAllAuConfig
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: The configuration of all AUs
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/auConfiguration'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal Server Error
+  '/aus/{auid}':
+    put:
+      tags:
+        - aus
+      summary: Store the configuration of an AU
+      description: Store the configuration of an AU given the AU identifier
+      operationId: putAuConfig
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: 'auConfiguration'
+          in: body
+          description: The Archival Unit configuration to be stored
+          required: true
+          schema:
+            $ref: '#/definitions/auConfiguration'
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+        '415':
+          description: Unsupported Media Type
+        '500':
+          description: Internal Server Error
+    get:
+      tags:
+        - aus
+      summary: Get the configuration of an AU
+      description: Get the configuration of an AU given the AU identifier
+      operationId: getAuConfig
+      produces:
+        - application/json
+      parameters:
+        - name: 'auid'
+          in: path
+          description: The identifier of the AU for which the configuration is\
+            \ requested
+          required: true
+          type: string
+      responses:
+        '200':
+          description: The configuration of the specified AU
+          schema:
+            $ref: '#/definitions/auConfiguration'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+    delete:
+      tags:
+        - aus
+      summary: Delete the configuration of an AU
+      description: Delete the configuration of an AU given the AU identifier
+      operationId: deleteAuConfig
+      produces:
+        - application/json
+      parameters:
+        - name: 'auid'
+          in: path
+          description: The identifier of the AU for which the configuration is\
+            \ to be deleted
+          required: true
+          type: string
+      responses:
+        '200':
+          description: The deleted configuration of the specified AU
+          schema:
+            $ref: '#/definitions/auConfiguration'
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+  '/austates/{auid}':
+    get:
+      tags:
+        - aus
+      summary: Get the state of an AU
+      description: Get the state of an AU given the AU identifier
+      operationId: getAuState
+      produces:
+        - application/json
+      parameters:
+        - name: 'auid'
+          in: path
+          description: The identifier of the AU for which the state is requested
+          required: true
+          type: string
+      responses:
+        '200':
+          description: The state of the specified AU
+          schema:
+            type: string
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+    patch:
+      tags:
+        - aus
+      summary: Update the state of an AU
+      description: Update the state of an AU given the AU identifier
+      operationId: patchAuState
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: 'auid'
+          in: path
+          description: The identifier of the AU for which the state is to be\
+            \ updated
+          required: true
+          type: string
+        - name: 'auState'
+          in: body
+          description: The parts of the Archival Unit state to be updated
+          required: true
+          schema:
+            type: string
+        - name: 'X-Lockss-Request-Cookie'
+          in: header
+          description: The LOCKSS-specific request cookie header
+          required: false
+          type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+        '415':
+          description: Unsupported Media Type
+        '500':
+          description: Internal Server Error
+  '/auagreements/{auid}':
+    get:
+      tags:
+        - aus
+      summary: Get the poll agreements of an AU
+      description: Get the poll agreements of an AU given the AU identifier
+      operationId: getAuAgreements
+      produces:
+        - application/json
+      parameters:
+        - name: 'auid'
+          in: path
+          description: The identifier of the AU for which the poll agreements\
+            \ are requested
+          required: true
+          type: string
+      responses:
+        '200':
+          description: The poll agreements of the specified AU
+          schema:
+            type: string
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+    patch:
+      tags:
+        - aus
+      summary: Update the poll agreements of an AU
+      description: Update the poll agreements of an AU given the AU identifier
+      operationId: patchAuAgreements
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: 'auid'
+          in: path
+          description: The identifier of the AU for which the poll agreements\
+            \ are to be updated
+          required: true
+          type: string
+        - name: 'auAgreements'
+          in: body
+          description: The parts of the Archival Unit poll agreements to be\
+            \ updated
+          required: true
+          schema:
+            type: string
+        - name: 'X-Lockss-Request-Cookie'
+          in: header
+          description: The LOCKSS-specific request cookie header
+          required: false
+          type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+        '415':
+          description: Unsupported Media Type
+        '500':
+          description: Internal Server Error
+  '/aususpecturls/{auid}':
+    get:
+      tags:
+        - aus
+      summary: Get the suspect URL versions of an AU
+      description: Get the suspect URL versions of an AU given the AU identifier
+      operationId: getAuSuspectUrlVersions
+      produces:
+        - application/json
+      parameters:
+        - name: 'auid'
+          in: path
+          description: The identifier of the AU for which the suspect URL\
+            \ versions are requested
+          required: true
+          type: string
+      responses:
+        '200':
+          description: The suspect URL versions of the specified AU
+          schema:
+            type: string
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+    put:
+      tags:
+        - aus
+      summary: Update the suspect URL versions of an AU
+      description: Update the suspect URL versions of an AU given the AU\
+        \ identifier
+      operationId: putAuSuspectUrlVersions
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: 'auid'
+          in: path
+          description: The identifier of the AU for which the suspect URL\
+            \ versions are to be updated
+          required: true
+          type: string
+        - name: 'auSuspectUrlVersions'
+          in: body
+          description: The parts of the Archival Unit suspect URL versions to\
+            \ be updated
+          required: true
+          schema:
+            type: string
+        - name: 'X-Lockss-Request-Cookie'
+          in: header
+          description: The LOCKSS-specific request cookie header
+          required: false
+          type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+        '415':
+          description: Unsupported Media Type
+        '500':
+          description: Internal Server Error
+  '/noaupeers/{auid}':
+    get:
+      tags:
+        - aus
+      summary: Get the NoAuPeerSet object of an AU
+      description: Get the NoAuPeerSet object of an AU given the AU identifier
+      operationId: getNoAuPeers
+      produces:
+        - application/json
+      parameters:
+        - name: 'auid'
+          in: path
+          description: The identifier of the AU for which the NoAuPeerSet\
+            \ object is requested
+          required: true
+          type: string
+      responses:
+        '200':
+          description: The NoAuPeerSet object of the specified AU
+          schema:
+            type: string
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
+    put:
+      tags:
+        - aus
+      summary: Update the NoAuPeerSet object of an AU
+      description: Update the NoAuPeerSet object of an AU given the AU\
+        \ identifier
+      operationId: putNoAuPeers
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: 'auid'
+          in: path
+          description: The identifier of the AU for which the NoAuPeerSet\
+            \ object is to be updated
+          required: true
+          type: string
+        - name: 'noAuPeerSet'
+          in: body
+          description: The parts of the Archival Unit NoAuPeerSet object to be\
+            \ updated
+          required: true
+          schema:
+            type: string
+        - name: 'X-Lockss-Request-Cookie'
+          in: header
+          description: The LOCKSS-specific request cookie header
+          required: false
+          type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+        '415':
+          description: Unsupported Media Type
+        '500':
+          description: Internal Server Error
+  /mdupdates:
+    get:
+      tags:
+        - "mdupdates"
+      summary: "Get a list of currently active jobs"
+      description: "Get a list of all currently active jobs or a pageful of the\
+        \ list defined by the continuation token and size"
+      operationId: "getMdupdates"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "limit"
+          in: "query"
+          description: "The number of jobs per page"
+          required: false
+          type: "integer"
+          default: 50
+        - name: "continuationToken"
+          in: "query"
+          required: false
+          type: "string"
+          description: "The continuation token of the next page of jobs to be\
+            \ returned"
+      responses:
+        200:
+          description: "The requested jobs"
+          schema:
+            $ref: '#/definitions/jobPageInfo'
+        400:
+          description: "Bad Request"
+        401:
+          description: "Unauthorized"
+        409:
+          description: "Conflict"
+        500:
+          description: "Internal Server Error"
+    post:
+      tags:
+        - "mdupdates"
+      summary: "Perform an AU metadata update operation"
+      description: "Perform an AU metadata update operation given the update\
+        \ specification"
+      operationId: "postMdupdates"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "metadataUpdateSpec"
+          in: "body"
+          description: "The information defining the AU metadata update\
+            \ operation"
+          required: true
+          schema:
+            $ref: "#/definitions/metadataUpdateSpec"
+      responses:
+        202:
+          description: "The job created to perform the AU metadata update\
+            \ operation"
+          schema:
+            $ref: "#/definitions/job"
+        400:
+          description: "Bad Request"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+        415:
+          description: Unsupported Media Type
+        500:
+          description: "Internal Server Error"
+    delete:
+      tags:
+        - "mdupdates"
+      summary: "Delete all of the currently queued and active jobs"
+      description: "Delete all of the currently queued and active jobs"
+      operationId: "deleteMdupdates"
+      produces:
+        - "application/json"
+      responses:
+        200:
+          description: "Count of jobs successfully deleted"
+          schema:
+            type: "integer"
+            format: "int32"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        500:
+          description: "Internal Server Error"
+  /mdupdates/{jobid}:
+    get:
+      tags:
+        - "mdupdates"
+      summary: "Get a job"
+      description: "Get a job given the job identifier"
+      operationId: "getMdupdatesJobid"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "jobid"
+          in: "path"
+          description: "The identifier of the requested job"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "The status of the requested job"
+          schema:
+            $ref: "#/definitions/status"
+        401:
+          description: "Unauthorized"
+        404:
+          description: "Not Found"
+        500:
+          description: "Internal Server Error"
+    delete:
+      tags:
+        - "mdupdates"
+      summary: "Delete a job"
+      description: "Delete a job given the job identifier, stopping any current\
+        \ processing, if necessary"
+      operationId: deleteMdupdatesJobid
+      produces:
+        - "application/json"
+      parameters:
+        - name: "jobid"
+          in: "path"
+          description: "The identifier of the job to be deleted"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "The deleted job"
+          schema:
+            $ref: "#/definitions/job"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Forbidden"
+        404:
+          description: "Not Found"
+        500:
+          description: "Internal Server Error"
+  /metadata/aus/{auid}:
+    get:
+      tags:
+        - "metadata"
+      summary: "Get the metadata stored for an AU"
+      description: "Get the full metadata stored for an AU given the AU\
+        \ identifier or a pageful of the metadata defined by the continuation\
+        \ token and size"
+      operationId: "getMetadataAusAuid"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "auid"
+          in: "path"
+          description: "The identifier of the AU for which the metadata is\
+            \ requested"
+          required: true
+          type: "string"
+        - name: "limit"
+          in: "query"
+          required: false
+          type: "integer"
+          description: "The number of items per page"
+          default: 50
+        - name: "continuationToken"
+          in: "query"
+          required: false
+          type: "string"
+          description: "The continuation token of the next page of metadata to\
+            \ be returned"
+      responses:
+        200:
+          description: "The metadata of the specified AU"
+          schema:
+            $ref: "#/definitions/auMetadataPageInfo"
+        400:
+          description: "Bad Request"
+        401:
+          description: "Unauthorized"
+        404:
+          description: "Not found"
+        409:
+          description: "Conflict"
+        500:
+          description: "Internal Server Error"
+  /urls/openurl:
+    get:
+      tags:
+        - "urls"
+      summary: "Performs an OpenURL query"
+      description: "Provides the URL that results from performing an OpenURL\
+        \ query. With query parameters inline"
+      operationId: "getUrlsOpenUrl"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "params"
+          in: "query"
+          description: "The OpenURL parameters"
+          required: true
+          type: "array"
+          items:
+            type: "string"
+      responses:
+        200:
+          description: "The data related to the performed OpenURL query"
+          schema:
+            $ref: "#/definitions/urlInfo"
+        400:
+          description: "Bad Request"
+        401:
+          description: "Unauthorized"
+        500:
+          description: "Internal Server Error"
+  /urls/doi:
+    get:
+      tags:
+        - "urls"
+      summary: "Gets the URL for a DOI"
+      description: "Provides the URL for a DOI given the DOI"
+      operationId: "getUrlsDoi"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "doi"
+          in: "query"
+          required: true
+          type: "string"
+          description: "The DOI for which the URL is requested"
+      responses:
+        200:
+          description: "The URL for the specified DOI"
+          schema:
+            $ref: "#/definitions/urlInfo"
+        400:
+          description: "Bad Request"
+        401:
+          description: "Unauthorized"
+        500:
+          description: "Internal Server Error"
+  /polls:
+    post:
+      tags:
+        - "service"
+      summary: Send a request to call a poll to the poller
+      description: Use the information found in the descriptor object to initiate a  poll.
+      operationId: callPoll
+      consumes: 
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PollDesc'
+      responses:
+        '202':
+          description: The Poll request has been accepted and added to the queue.
+          schema:
+            type: string
+            description: Return a poll service id.
+        '401':
+          description: The Request is unauthorized
+        '403':
+          description: The Au is not eligible for polling
+        '404':
+          description: The descriptor (au) can not be found.
+        '500':
+          description: Internal Server Error
+  '/polls/{psId}':
+    get:
+      tags:
+        - "service"
+      summary: Get queued poll status
+      description: Get the status of a previously queued poll.
+      operationId: getPollStatus
+      produces:
+        - application/json
+      parameters: []
+      responses:
+        '200':
+          description: Poll info returned.
+          schema:
+            $ref: '#/definitions/PollerSummary'
+        '401':
+          description: Unauthorized request
+        '404':
+          description: No such poll service id.
+        '500':
+          description: Internal Server Error
+    delete:
+      tags:
+        - "service"
+      summary: Stop a poll and remove from queue.
+      description: >-
+        Stop a running poll and delete any schecduled polls for poll with the
+        poll service id.
+      operationId: cancelPoll
+      produces:
+        - application/json
+      parameters: []
+      responses:
+        '200':
+          description: Poll successfully stopped
+        '401':
+          description: Unauthorized request
+        '404':
+          description: No poll found with that id
+        '500':
+          description: Internal Server Error
+    parameters:
+      - name: psId
+        in: path
+        required: true
+        type: string
+  '/polls/{pollKey}/tallies':
+    get:
+      tags:
+        - "poll-detail"
+      summary: Page Tally
+      operationId: getTallyUrls
+      produces:
+        - application/json
+      parameters:
+        - name: tally
+          in: query
+          required: true
+          type: string
+          description: The kind of tally element to return.
+          enum:
+            - "agree"
+            - "disagree"
+            - "error"
+            - "noQuorum"
+            - "tooClose"
+        - name: page
+          in: query
+          required: false
+          type: integer
+          description: The page number.
+        - name: size
+          in: query
+          required: false
+          type: integer
+          description: The size of the page.
+      responses:
+        '200':
+          description: A pagable list of urls for given tally type.
+          schema:
+            $ref: '#/definitions/UrlPager'
+          headers:
+            X-Page-Count:
+              type: integer
+              x-example: 1
+            X-Page-Number:
+              type: integer
+              x-example: 1
+            X-Page-Size:
+              type: integer
+              x-example: 25
+            X-Total-Count:
+              type: integer
+              x-example: 50
+        '404':
+          description: Poll Key not found.
+        '500':
+          description: Internal Server Error
+    parameters:
+      - name: pollKey
+        in: path
+        required: true
+        type: string
+        description: The pollKey as listed in the PollDetail object.
+  '/polls/{pollKey}/repairs':
+    get:
+      tags:
+        - "poll-detail"
+      summary: Poll Repairs
+      operationId: getRepairQueueData
+      produces:
+        - application/json
+      parameters:
+        - name: repair
+          in: query
+          required: true
+          type: string
+          description: The repair queue elements to return.
+          enum:
+            - "pending"
+            - "active"
+            - "completed"
+        - name: page
+          in: query
+          required: false
+          type: integer
+          description: The page number.
+        - name: size
+          in: query
+          required: false
+          type: integer
+          description: The size of the page.
+      responses:
+        '200':
+          description: A pagable list of repair queue elements.
+          schema:
+            $ref: '#/definitions/RepairPager'
+          headers:
+            X-Page-Count:
+              type: integer
+              x-example: 1
+            X-Page-Number:
+              type: integer
+              x-example: 1
+            X-Page-Size:
+              type: integer
+              x-example: 25
+            X-Total-Count:
+              type: integer
+              x-example: 50
+        '404':
+          description: Poll ID not found.
+        '500':
+          description: Internal Server Error
+    parameters:
+      - name: pollKey
+        in: path
+        required: true
+        type: string
+        description: The pollKey as listed in the PollDetail object.
+  '/polls/{pollKey}/peer/{peerId}':
+    get:
+      tags:
+        - "poll-detail"
+      summary: Poll Peer Data
+      operationId: getPollPeerVoteUrls
+      produces:
+        - application/json
+      parameters:
+        - name: urls
+          in: query
+          required: true
+          type: string
+          description: The voter urls to return.
+          enum:
+            - "agreed"
+            - "disagreed"
+            - "pollerOnly"
+            - "voterOnly"
+        - name: page
+          in: query
+          required: false
+          type: integer
+          description: The page number
+        - name: size
+          in: query
+          required: false
+          type: integer
+          description: The page size
+      responses:
+        '200':
+          description: A pagable list of voter urls with a given status.
+          schema:
+            $ref: '#/definitions/UrlPager'
+          headers:
+            X-Page-Count:
+              type: integer
+              x-example: 1
+            X-Page-Number:
+              type: integer
+              x-example: 1
+            X-Page-Size:
+              type: integer
+              x-example: 25
+            X-Total-Count:
+              type: integer
+              x-example: 50
+        '404':
+          description: Poll or Voter ID not found.
+        '500':
+          description: Internal Server Error
+    parameters:
+      - name: pollKey
+        in: path
+        required: true
+        type: string
+        description: The pollKey from the PollDetail.
+      - name: peerId
+        in: path
+        required: true
+        type: string
+        description: The peerId from the Poll Detail.PeerData.
+  /polls/poller:
+    get:
+      tags:
+        - "poller-polls"
+      summary: Get the list of recent polls as poller.
+      description: >-
+        Get the list of recent polls as poller from the poll queue. if size and
+        page are passed in use those arguments to limit return data.
+      operationId: getPollsAsPoller
+      produces:
+        - application/json
+      parameters:
+        - name: size
+          in: query
+          required: false
+          type: integer
+          format: int32
+          description: Size of the page to retrieve.
+          x-example: 10
+        - name: page
+          in: query
+          required: false
+          type: integer
+          format: int32
+          description: Number of the page to retrieve.
+          x-example: 1
+      responses:
+        '200':
+          description: A pagable list has been returned.
+          schema:
+            $ref: '#/definitions/PollerPager'
+          headers:
+            X-Page-Count:
+              type: integer
+              x-example: 1
+            X-Page-Number:
+              type: integer
+              x-example: 1
+            X-Page-Size:
+              type: integer
+              x-example: 25
+            X-Total-Count:
+              type: integer
+              x-example: 50
+        '401':
+          description: Unauthorized request
+        '500':
+          description: Internal Server Error
+  '/polls/poller/{pollKey}':
+    get:
+      tags:
+        - "poller-polls"
+      summary: PollerDetails
+      
+      operationId: getPollerPollDetails
+      produces:
+        - application/json
+      description: Return the detailed information about a poll.
+      parameters: []
+      responses:
+        '200':
+          description: Detailed poll info returned.
+          schema:
+            $ref: '#/definitions/PollerDetail'
+        '401':
+          description: Unauthorized request.
+        '404':
+          description: Poll Key not found.
+        '500':
+          description: Internal Server Error
+    parameters:
+      - name: pollKey
+        in: path
+        required: true
+        type: string
+        description: The key assigned by the PollManager.
+  /polls/voter:
+    get:
+      tags:
+        - "voter-polls"
+      summary: Get the list of recent voter only polls.
+      description: >-
+        Get the list of recent polls as voter from the poll queue. if size and
+        page are passed in use those arguments to limit return data.
+      operationId: getPollsAsVoter
+      produces:
+        - application/json
+      parameters:
+        - name: size
+          in: query
+          required: false
+          type: integer
+          format: int32
+          description: Size of the page to retrieve.
+          x-example: 10
+        - name: page
+          in: query
+          required: false
+          type: integer
+          format: int32
+          description: Number of the page to retrieve.
+          x-example: 1
+      responses:
+        '200':
+          description: A pagable list has been returned.
+          schema:
+            $ref: '#/definitions/VoterPager'
+          headers:
+            X-Page-Count:
+              type: integer
+              x-example: 1
+            X-Page-Number:
+              type: integer
+              x-example: 1
+            X-Page-Size:
+              type: integer
+              x-example: 25
+            X-Total-Count:
+              type: integer
+              x-example: 50
+        '401':
+          description: Unauthorized request
+        '500':
+          description: Internal Server Error
+  '/polls/voter/{pollKey}':
+    get:
+      tags:
+        - "voter-polls"
+      summary: VoterDetails
+      operationId: getVoterPollDetails
+      produces:
+        - application/json
+      description: Return the detailed information about a poll.
+      parameters: []
+      responses:
+        '200':
+          description: Detailed poll info returned.
+          schema:
+            $ref: '#/definitions/VoterDetail'
+        '401':
+          description: Unauthorized request
+        '404':
+          description: No such poll key.
+        '500':
+          description: Internal Server Error
+    parameters:
+      - name: pollKey
+        in: path
+        required: true
+        type: string
+        description: The key assigned by the PollManager.
+  /status:
+    get:
+      tags:
+      - "status"
+      summary: "Get the status of the service"
+      description: "Get the status of the service"
+      operationId: "getStatus"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "The status of the service"
+          schema:
+            $ref: "#/definitions/apiStatus"
+        401:
+          description: "Unauthorized"
+        500:
+          description: "Internal Server Error"
+securityDefinitions:
+  basicAuth:
+    description: "HTTP Basic Authentication. Works over `HTTP` and `HTTPS`"
+    type: "basic"
+definitions:
+  auConfiguration:
+    type: "object"
+    required:
+      - "auId"
+      - "auConfig"
+    properties:
+      auId:
+        type: "string"
+        description: "The identifier of the Archival Unit"
+      auConfig:
+        type: "object"
+        description: "The map of Archival Unit configuration items"
+        additionalProperties:
+          type: "string"
+          description: "The value of the configuration for the key"
+    description: "The encapsulation of an Archival Unit configuration"
+  status:
+    type: "object"
+    required:
+      - "code"
+      - "msg"
+    properties:
+      code:
+        type: "integer"
+        format: "int32"
+        description: "The numeric value for the current state"
+      msg:
+        type: "string"
+        description: "A text message defining the current state"
+    description: "The existing state of a job"
+  job:
+    type: "object"
+    required:
+      - "au"
+      - "creationDate"
+      - "id"
+      - "status"
+    properties:
+      au:
+        $ref: "#/definitions/au"
+      id:
+        type: "string"
+        description: "The identifier of this job"
+      description:
+        type: "string"
+        description: "A description of the task being performed by this job"
+      creationDate:
+        type: "string"
+        format: "date"
+        description: "The timestamp when this job was created"
+      startDate:
+        type: "string"
+        format: "date"
+        description: "The timestamp when this job processing started"
+      endDate:
+        type: "string"
+        format: "date"
+        description: "The timestamp when this job processing ended"
+      status:
+        $ref: "#/definitions/status"
+    description: "An asynchronous task to be performed"
+  au:
+    type: "object"
+    required:
+      - "id"
+    properties:
+      id:
+        type: "string"
+        description: "The identifier of this AU"
+      job:
+        type: "string"
+        description: "The identifier of the job associated with this AU"
+      name:
+        type: "string"
+        description: "The name of the AU, for display purposes"
+    description: "An Archival Unit"
+  jobPageInfo:
+    type: "object"
+    required:
+      - "jobs"
+      - "pageInfo"
+    properties:
+      jobs:
+        type: "array"
+        description: "The jobs displayed in the page"
+        items:
+          $ref: "#/definitions/job"
+      pageInfo:
+        $ref: "#/definitions/pageInfo"
+    description: "A display page of jobs"
+  pageInfo:
+    type: "object"
+    required:
+      - "curLink"
+      - "continuationToken"
+      - "resultsPerPage"
+      - "totalCount"
+    properties:
+      totalCount:
+        type: "integer"
+        format: "int32"
+        description: "The total number of elements to be paginated"
+      resultsPerPage:
+        type: "integer"
+        format: "int32"
+        description: "The number of results per page"
+      continuationToken:
+        type: "string"
+        description: "The continuation token"
+      curLink:
+        type: "string"
+        description: "The link to the current page"
+      nextLink:
+        type: "string"
+        description: "The link to the next page"
+    description: "The information related to pagination of content"
+  metadataUpdateSpec:
+    type: "object"
+    required:
+      - "auid"
+      - "updateType"
+    properties:
+      auid:
+        type: "string"
+        description: "The identifier of the AU for which the metadata update is\
+          \ to be performed"
+      updateType:
+        type: "string"
+        description: "The type of metadata update to be performed"
+        example: full_extraction | incremental_extraction | delete
+    description: "The information defining an AU metadata update operation"
+  auMetadataPageInfo:
+    type: "object"
+    required:
+      - "items"
+      - "pageInfo"
+    properties:
+      items:
+        type: "array"
+        description: "The metadata for the AU items in the page"
+        items:
+          $ref: "#/definitions/itemMetadata"
+      pageInfo:
+        $ref: "#/definitions/pageInfo"
+    description: "The display page of AU metadata"
+  itemMetadata:
+    type: "object"
+    properties:
+      scalarMap:
+        type: "object"
+        description: "The map of scalar metadata elements for this item"
+        additionalProperties:
+          type: "string"
+          description: "The scalar value of the metadata for the key"
+      setMap:
+        type: "object"
+        description: "The map of set-bound metadata elements for this item"
+        additionalProperties:
+          type: "array"
+          description: "The set value of the metadata for the key"
+          items:
+            type: "string"
+      listMap:
+        type: "object"
+        description: "The map of listed metadata elements for this item"
+        additionalProperties:
+          type: "array"
+          description: "The list value of the metadata for the key"
+          items:
+            type: "string"
+      mapMap:
+        type: "object"
+        description: "The map of mapped metadata elements for this item"
+        additionalProperties:
+          type: "object"
+          description: "The map value of the metadata for the key"
+          additionalProperties:
+            type: "string"
+    description: "The metadata generated for a single item"
+  urlInfo:
+    type: "object"
+    required:
+      - "params"
+      - "urls"
+    properties:
+      params:
+        type: "object"
+        description: "The parameters that define the resulting URLs"
+        additionalProperties:
+          type: "string"
+          description: "The value of the parameter for the parameter name"
+      urls:
+        type: "array"
+        description: "The URLs"
+        items:
+          type: "string"
+    description: "The information related to a resulting list of URLs"
+  PollerDetail:
+    type: object
+    required:
+      - pollDesc
+      - pollerId
+      - status
+    properties:
+      pollDesc:
+        $ref: '#/definitions/PollDesc'
+      pollerId:
+        type: string
+        description: The id of the poller who called the poll
+      status:
+        type: string
+        description: The current status of the poll.
+      pollKey:
+        type: string
+        description: Key generated by poll manager when poll is created.
+      createTime:
+        type: integer
+        format: int64
+        description: The timestamp  at which the poll was created.
+      duration:
+        type: integer
+        format: int64
+        description: The estimated duration for the poll.
+      deadline:
+        type: integer
+        format: int64
+        description: The time by which the poll must have completed
+      outerCircleTarget:
+        type: integer
+        format: int32
+        description: The number of peers from the poller outer circle to taget.
+      hashAlgorithm:
+        type: string
+        description: The algorithm used by the hasher for this poll.
+      voteMargin:
+        type: integer
+        format: int32
+        description: >-
+          The required agreement need to decide landslide agreement or
+          disagreement.
+      voteDeadline:
+        type: integer
+        format: int64
+        description: The  time by which all voters must have voted.
+      voteDuration:
+        type: integer
+        format: int64
+        description: The  estimated duration for voters.
+      pollEnd:
+        type: integer
+        format: int64
+        description: the time at which the poll ended or -1 if still running.
+      quorum:
+        type: integer
+        format: int32
+        description: The minimum required for a quroum
+      errorDetails:
+        type: string
+        description: The error which caused the poll to fail.
+      votedPeers:
+        type: array
+        description: The data from peers whom voted.
+        items:
+          $ref: '#/definitions/PeerData'
+      noAuPeers:
+        type: array
+        description: The peers who do not have the au.
+        items:
+          type: string
+      tally:
+        $ref: '#/definitions/TallyData'
+      repairQueue:
+        $ref: '#/definitions/RepairQueue'
+    description: The details of a poll being performed or queued by the Poller
+  VoterDetail:
+    type: object
+    required:
+      - pollDesc
+      - pollerId
+      - status
+    properties:
+      pollDesc:
+        $ref: '#/definitions/PollDesc'
+      pollerId:
+        type: string
+        description: The id of the voter in the poll
+      callerId:
+         type: string
+         description: The id of the poller who called the poll
+      status:
+        type: string
+        description: The current status of the poll.
+      pollKey:
+        type: string
+        description: Key generated by poll manager when poll is created.
+      createTime:
+        type: integer
+        format: int64
+        description: The timestamp  at which the poll was created.
+      duration:
+        type: integer
+        format: int64
+        description: The estimated duration for the poll.
+      deadline:
+        type: integer
+        format: int64
+        description: The time by which the poll must have completed
+      hashAlgorithm:
+        type: string
+        description: The algorithm used by the hasher for this poll.
+      agreement:
+        type: number
+        format: double
+        description: The percentage agreement.
+      wtAgreement:
+        type: number
+        format: double
+        description: The weighted percentage agreement.
+      symmetricAgreement:
+        type: number
+        format: double
+        description: The percentage of symmetric agreement.
+      wtSymmetricAgreement:
+        type: number
+        format: double
+        description: The weighted percentage of symmetric agreement.
+      pollerNonce:
+        type: string
+        description: the poller nonce
+      voterNonce:
+        type: string
+        description: the voter nonce
+      voter2Nonce:
+        type: string
+        description: the voter2 nonce
+      voteDeadline:
+        type: integer
+        format: int64
+        description: The  time by which all voters must have voted.
+      numAgree:
+        type: integer
+        format: int32
+        description: The number of urls with agreement.
+      numDisagree:
+        type: integer
+        format: int32
+        description: The number of urls with disagreement.
+      numPollerOnly:
+        type: integer
+        format: int32
+        description: The number of urls found by only the poller.
+      numVoterOnly:
+        type: integer
+        format: int32
+        description: The number of urls found by only a voter.
+      errorDetails:
+        type: string
+        description: The error which caused the poll to fail.
+    description: The details of a poll being performed or queued as the Voter.
+  PeerData:
+    type: object
+    required:
+      - peerId
+      - status
+    properties:
+      peerId:
+        type: string
+        description: the peer id for this participant
+      status:
+        type: string
+        description: the status of this peer
+      agreement:
+        type: number
+        format: float
+        description: the percentage of vote agreement.
+      numAgree:
+        type: integer
+        format: int64
+      agreeLink:
+        $ref: '#/definitions/LinkDesc'
+      numDisagree:
+        type: integer
+        format: int64
+      disagreeLink:
+        $ref: '#/definitions/LinkDesc'
+      numPollerOnly:
+        type: integer
+        format: int64
+      pollerOnlyLink:
+        $ref: '#/definitions/LinkDesc'
+      numVoterOnly:
+        type: integer
+        format: int64
+      voterOnlyLink:
+        $ref: '#/definitions/LinkDesc'
+      bytesHashed:
+        type: integer
+        format: int64
+        description: the number of bytes hashed.
+      bytesRead:
+        type: integer
+        format: int64
+        description: the number of bytes read.
+      wtAgreement:
+        type: number
+        format: float
+        description: the weight of vote percentage agreement.
+      wtNumAgree:
+        type: number
+        format: float
+        description: the weight of number agree votes.
+      wtNumDisagree:
+        type: number
+        format: float
+        description: the weight of number of disagree votes.
+      wtNumPollerOnly:
+        type: number
+        format: float
+        description: the weight of number of poller only votes.
+      wtNumVoterOnly:
+        type: number
+        format: float
+        description: the weight of number of voter only votes.
+      state:
+        type: string
+        description: the state machine state.
+      lastStateChange:
+        type: integer
+        format: int64
+        description: the time of last state change.
+    description: Detail for a single voter in a poll.
+  TallyData:
+    type: object
+    required:
+      - numAgree
+      - numDisagree
+      - numError
+      - numNoQuorum
+      - numTooClose
+    properties:
+      numAgree:
+        type: integer
+        format: int32
+        description: The number of urls with agreement.
+      agreeLink:
+        $ref: '#/definitions/LinkDesc'
+      numDisagree:
+        type: integer
+        format: int32
+        description: The number of urls with disagreement.
+      disagreeLink:
+        $ref: '#/definitions/LinkDesc'
+      numTooClose:
+        type: integer
+        format: int32
+        description: The number of urls too close.
+      tooCloseLink:
+        $ref: '#/definitions/LinkDesc'
+      numNoQuorum:
+        type: integer
+        format: int32
+        description: The number of urls without enough voters.
+      noQuorumLink:
+        $ref: '#/definitions/LinkDesc'
+      numError:
+        type: integer
+        format: int32
+        description: The number of urls without errors.
+      errorLink:
+        $ref: '#/definitions/LinkDesc'
+      wtAgreed:
+        type: number
+        format: float
+        description: The weighted sum agreed uris.
+        default: 0
+      wtDisagreed:
+        type: number
+        format: float
+        description: The weighted sum of disagree uris.
+        default: 0
+      wtTooClose:
+        type: number
+        format: float
+        description: The sum of the tooClose uris.
+        default: 0
+      wtNoQuorum:
+        type: number
+        format: float
+        description: The weighted sum of NoQuorum uris.
+        default: 0
+    description: The tally for the current poll.
+  RepairQueue:
+    type: object
+    required:
+      - numActive
+      - numCompleted
+      - numPending
+    properties:
+      numPending:
+        type: integer
+        format: int32
+        description: The number of pending repairs
+      pendingLink:
+        $ref: '#/definitions/LinkDesc'
+      numActive:
+        type: integer
+        format: int32
+        description: The number of active repairs
+      activeLink:
+        $ref: '#/definitions/LinkDesc'
+      numCompleted:
+        type: integer
+        format: int32
+        description: The number of completed repairs
+      completedLink:
+        $ref: '#/definitions/LinkDesc'
+    description: Description of the RepairQueue.
+  RepairData:
+    type: object
+    required:
+      - repairFrom
+      - repairUrl
+    properties:
+      repairUrl:
+        type: string
+        description: The url to repair
+      repairFrom:
+        type: string
+        description: The peer to repair from
+      result:
+        type: string
+        description: The status of this repair
+        enum:
+          - "NoQuorum"
+          - "TooClose"
+          - "Lost"
+          - "LostPollerOnly"
+          - "LostVoterOnly"
+          - "Won"
+    description: >-
+      structure used to define a repair source for url. if the source is null
+      than repair from publisher
+  RepairPager:
+    type: object
+    required:
+      - pageDesc
+    properties:
+      pageDesc:
+        $ref: '#/definitions/PageDesc'
+      repairs:
+        type: array
+        description: The list of repair data on this page or null.
+        items:
+          $ref: '#/definitions/RepairData'
+    description: A Pager for a list of urls found in poll details.
+  UrlPager:
+    type: object
+    required:
+      - pageDesc
+    properties:
+      pageDesc:
+        $ref: '#/definitions/PageDesc'
+      urls:
+        type: array
+        description: The urls on this page.
+        items:
+          type: "string"
+    description: A Pager for a list of urls found in poll details.
+  PollerPager:
+    type: object
+    required:
+      - pageDesc
+    properties:
+      pageDesc:
+        $ref: '#/definitions/PageDesc'
+      polls:
+        type: array
+        description: The list of polls for the current page or null
+        items:
+          $ref: '#/definitions/PollerSummary'
+    description: A page of poller poll summaries.
+  PollerSummary:
+    type: object
+    required:
+      - auId
+      - deadline
+      - pollKey
+      - start
+      - status
+      - variant
+    properties:
+      auId:
+        type: string
+        description: The id for the au being polled.
+      variant:
+        type: string
+        description: The V3 Poll variant.
+      status:
+        type: string
+        description: The current status of the poll.
+      participants:
+        type: integer
+        format: int32
+        description: The number of participants voting.
+      numTalliedUrls:
+        type: integer
+        format: int32
+        description: The number of tallied urls.
+      numHashErrors:
+        type: integer
+        format: int32
+        description: The number of hash errors.
+      numCompletedRepairs:
+        type: integer
+        format: int32
+        description: The number of completed repairs.
+      numAgreeUrls:
+        type: integer
+        format: int32
+        description: The number of urls with agreement.
+      start:
+        type: integer
+        format: int64
+        description: The timestamp for when the poll started.
+      deadline:
+        type: integer
+        format: int64
+        description: The deadline for voting in this poll.
+      pollEnd:
+        type: integer
+        format: int64
+        description: The time at which the poll ended.
+      pollKey:
+        type: string
+        description: Key generated by poll manager when poll was created.
+      detailLink:
+        $ref: '#/definitions/LinkDesc'
+    description: A summary of a poll in which we are the poller.
+  VoterSummary:
+    type: object
+    required:
+      - auId
+      - caller
+      - deadline
+      - pollKey
+      - start
+      - status
+    properties:
+      auId:
+        type: string
+        description: The id for the au being polled.
+      caller:
+        type: string
+        description: The id of who called the poll.
+      start:
+        type: integer
+        format: int64
+        description: The timestamp for when the poll started.
+      status:
+        type: string
+        description: The current status of the poll.
+      deadline:
+        type: integer
+        format: int64
+        description: The deadline for voting in this poll.
+      pollKey:
+        type: string
+        description: Key generated by poll manager when poll was created.
+      detailLink:
+        $ref: '#/definitions/LinkDesc'
+    description: A summary of a poll in which we are acting just as a voter.
+  VoterPager:
+    type: object
+    required:
+      - pageDesc
+    properties:
+      pageDesc:
+        $ref: '#/definitions/PageDesc'
+      polls:
+        type: array
+        description: The list of polls for the current page or null
+        items:
+          $ref: '#/definitions/VoterSummary'
+    description: A page of voter poll summary.
+  PollDesc:
+    type: object
+    required:
+      - auId
+    properties:
+      auId:
+        type: string
+        description: The id which defines the poll
+      cuSetSpec:
+        $ref: '#/definitions/CachedUriSetSpec'
+      pollType:
+        type: integer
+        description: The type of poll to run. Only V3 is supported.
+        minimum: 3
+      protocol:
+        type: integer
+        description: The version of polling protocol.
+      pluginPollVersion:
+        type: string
+        description: The version of the polling features needed by the plugin.
+      variant:
+        type: string
+        description: The V3 poll variation.
+        enum:
+          - "PoR"
+          - "PoP"
+          - "Local"
+          - "NoPoll"
+      modulus:
+        type: integer
+        description: Poll on every 'n'th url.
+    description: The Poller Services poll spec used to define a poll.
+  CachedUriSetSpec:
+    type: object
+    required:
+      - urlPrefix
+    properties:
+      urlPrefix:
+        type: string
+        description: The base which roots the lower and upper bound
+      lowerBound:
+        type: string
+        description: 'lower bound of the prefix range, inclusive.'
+      upperBound:
+        type: string
+        description: 'upper bound of prefix range, inclusive.'
+    description: >-
+      A set of urls bounded by  upper and lower restraints.  If lower = "." this
+      is a singleContentNode. If lower is null then start at the root url, if
+      upper is null end with the last.
+  PageDesc:
+    type: object
+    required:
+      - page
+      - size
+      - total
+    properties:
+      page:
+        type: integer
+        description: The page number
+        example: 10
+      size:
+        type: integer
+        description: The size or number of elements on a page
+        example: 5
+      total:
+        type: integer
+        description: The mTotal number of elements.
+        example: 150
+      prevPage:
+        type: string
+        description: The url of the prev page of results or null
+      nextPage:
+        type: string
+        description: The url to the next page of results or null.
+    description: The information needed to page in a long list of data
+  LinkDesc:
+    type: object
+    required:
+      - link
+    properties:
+      link:
+        type: string
+        description: The actual link suitable for a standard GET request
+        example: 'http:www.example.com/v1/element'
+      desc:
+        type: string
+        description: A description of this link
+        example: pollerOnly
+  apiStatus:
+    type: "object"
+    required:
+      - "version"
+      - "ready"
+    properties:
+      version:
+        type: "string"
+        description: "The version of the service"
+      ready:
+        type: "boolean"
+        description: "The indication of whether the service is available"
+    description: "The status information of the service"
