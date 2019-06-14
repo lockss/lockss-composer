@@ -31,15 +31,32 @@ usage() {
   echo "profile is the name of the set of services to be composed"
   echo "Options:"
   echo "  -o <dir> The output directory. Default 'laaws_composed'"
+  echo "  -p       Preserve temporary files on exit"
 }
 
 # Remove the output directory.
-cleanup() {
+cleanup_output() {
   /bin/rm -rf $output_dir
 }
 
+# Remove the output and temporary directories, if necessary.
+cleanup() {
+  cleanup_output
+
+  while read -u3 project_name; do
+    # Cleanup of the code of this project, if necessary.
+    if [ -z $preserve ]; then
+      /bin/rm -rf ${project_name}
+    fi
+  done 3< ${compose_profile}/projects
+}
+
 output_dir=laaws-composed
+preserve=
 compose_profile=
+
+# Clean up if script is interrupted.
+trap "cleanup" SIGINT SIGTERM 1
 
 # Process command line options.
 while [ -n "$1" ]; do
@@ -47,6 +64,9 @@ while [ -n "$1" ]; do
     "-o" )
       output_dir="$2"
       shift; shift; continue;;
+    "-p" )
+      preserve="true"
+      shift; continue;;
     -h )
       usage
       exit 0;;
@@ -58,10 +78,11 @@ while [ -n "$1" ]; do
 done
 
 echo output_dir=$output_dir
+echo preserve=$preserve
 echo compose_profile=$compose_profile
 
 # Reset the contents of the output directory.
-cleanup
+cleanup_output
 /bin/mkdir ${output_dir}
 
 # Loop through all the projects to be composed.
@@ -89,6 +110,11 @@ while read -u3 project_name; do
     /bin/cp -r ${project_name}/test ${output_dir}
   fi
 
+  # Cleanup of the code of this project, if necessary.
+  if [ -z $preserve ]; then
+    /bin/rm -rf ${project_name}
+  fi
+
   echo "End processing service $project_name"
 done 3< ${compose_profile}/projects
 
@@ -109,3 +135,5 @@ done 3< ${compose_profile}/projects
 
 # Overlay the profile test files to the output.
 /bin/cp -r ${compose_profile}/test ${output_dir}
+
+mvn install -f ${output_dir}/pom.xml -DskipGitProperties=true -DskipSwaggerPostprocess=true -DskipSwagger=true -DskipTests=true
