@@ -89,33 +89,61 @@ cleanup_output
 while read -u3 project_name; do
   echo "Begin processing service $project_name"
 
-  # Get a clean copy of the project to be composed.
-  /bin/rm -rf ${project_name}
-  git clone -b develop https://github.com/lockss/${project_name}.git
+  # Get the base name of the project.
+  base_project_name=$(basename ${project_name})
+  echo base_project_name=$base_project_name
 
-  # Generate the project code.
-  mvn -f ${project_name}/pom.xml generate-sources
+  # Check whether the project name is really a path.
+  if [ "$project_name" != "$base_project_name" ]; then
+    # Yes: Check that the project exists.
+    if [ -d $project_name ]; then
+      # Yes: Make a local copy the existing project.
+      echo Making a copy of the project $project_name 
+      /bin/cp -r ${project_name} ${base_project_name}
 
-  # Remove project conflicting files.
-  /bin/rm -rf ${project_name}/src/generated/java/org/lockss/laaws/*/config
-  /bin/rm -rf ${project_name}/src/main/java/org/lockss/laaws/*/security
-  /bin/rm -f ${project_name}/src/main/java/org/lockss/laaws/*/*Application.java
-  /bin/rm -rf ${project_name}/src/main/resources/swagger
+      # Reset the project name to point to the local copy.
+      project_name=$base_project_name
 
-  # Copy the project source code files to the output.
-  /bin/cp -r ${project_name}/src ${output_dir}
-
-  # Copy the project test files to the output.
-  if [ -d ${project_name}/test ]; then
-    /bin/cp -r ${project_name}/test ${output_dir}
+      # Clean the project.
+      echo Cleaning $project_name
+      mvn -f ${project_name}/pom.xml clean
+    else
+      # No: Skip the project because it does not exist.
+      echo Project $project_name does not exist. Skipping...
+    fi
+  else
+    # Get a clean copy of the project to be composed.
+    echo Deleting $project_name
+    /bin/rm -rf $project_name
+    git clone -b develop https://github.com/lockss/${project_name}.git
   fi
 
-  # Cleanup of the code of this project, if necessary.
-  if [ -z $preserve ]; then
-    /bin/rm -rf ${project_name}
-  fi
+  # Check that there is a project to be processed.
+  if [ -d $project_name ]; then
+    # Yes: Generate the project code.
+    mvn -f ${project_name}/pom.xml generate-sources
 
-  echo "End processing service $project_name"
+    # Remove project conflicting files.
+    /bin/rm -rf ${project_name}/src/generated/java/org/lockss/laaws/*/config
+    /bin/rm -rf ${project_name}/src/main/java/org/lockss/laaws/*/security
+    /bin/rm -f ${project_name}/src/main/java/org/lockss/laaws/*/*Application.java
+    /bin/rm -rf ${project_name}/src/main/resources/swagger
+
+    # Copy the project source code files to the output.
+    /bin/cp -r ${project_name}/src ${output_dir}
+
+    # Copy the project test files to the output.
+    if [ -d ${project_name}/test ]; then
+      /bin/cp -r ${project_name}/test ${output_dir}
+    fi
+
+    # Cleanup of the code of this project, if necessary.
+    if [ -z $preserve ]; then
+      /bin/rm -rf ${project_name}
+    fi
+
+    echo "End processing service $project_name"
+  fi
 done 3< ${compose_profile}/projects
 
 # Copy the profile configuration files to the output.
@@ -136,4 +164,5 @@ done 3< ${compose_profile}/projects
 # Overlay the profile test files to the output.
 /bin/cp -r ${compose_profile}/test ${output_dir}
 
+# Install the JAR just built with all the dependencies.
 mvn install -f ${output_dir}/pom.xml -DskipGitProperties=true -DskipSwaggerPostprocess=true -DskipSwagger=true -DskipTests=true
