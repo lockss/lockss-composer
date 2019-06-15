@@ -138,9 +138,12 @@ public class ComposedApplication extends BaseSpringBootApplication
       logger.info("Starting the LOCKSS Services");
 
       AppSpec spec = new AppSpec()
-	.setService(ServiceDescr.register(new ServiceDescr("All Services",
-							   "all")))
+	.setService(ServiceDescr.register(new ServiceDescr("Composed Services",
+							   "composed")))
 	.setArgs(args)
+        .addAppConfig(org.lockss.jms.JMSManager.PARAM_START_BROKER, "true")
+	.addAppConfig(org.lockss.config.ConfigManager.PARAM_ENABLE_JMS_SEND,
+	      "true")
 	.addAppConfig(LockssDaemon.PARAM_START_PLUGINS, "true")
 	.addAppConfig(PluginManager.PARAM_START_ALL_AUS, "true")
 	.setAppManagers(myManagerDescs);
