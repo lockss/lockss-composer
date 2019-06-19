@@ -30,14 +30,16 @@ usage() {
   echo "Usage: $0 [-options] profile"
   echo "profile is the name of the set of services to be composed"
   echo "Options:"
-  echo "  -o <dir> The output directory. Default 'laaws_composed'"
+  echo "  -o <dir> The output directory. Default 'profile-composed'"
   echo "  -p       Preserve temporary local files on exit"
 }
 
 # Remove the output directory.
 cleanup_output() {
-  echo $0: Remove files from output directory $output_dir
-  /bin/rm -rf $output_dir
+  if [ -n $output_dir ]; then
+    echo $0: Remove files from output directory $output_dir
+    /bin/rm -rf $output_dir
+  fi
 }
 
 # Remove the output and temporary directories, if necessary.
@@ -57,7 +59,7 @@ cleanup() {
   exit
 }
 
-output_dir=laaws-composed
+output_dir=
 preserve=
 compose_profile=
 
@@ -82,6 +84,10 @@ while [ -n "$1" ]; do
   esac
   break;
 done
+
+if [ -z $output_dir ]; then
+  output_dir=${compose_profile}-composed
+fi
 
 echo $0: Output directory is $output_dir
 

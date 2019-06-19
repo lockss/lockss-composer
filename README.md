@@ -45,14 +45,14 @@ The result of the build is a so-called "uber JAR" file which includes the
 project code plus all its dependencies and which can be located via the symbolic
 link at
 
-`./laaws-composed/target/current-with-deps.jar`
+`./allServices-composed/target/current-with-deps.jar`
 
 ### Run the composed web service:
-Change to the `laaws-composed` directory and run the
+Change to the `allServices-composed` directory and run the
 [LOCKSS Development Scripts](https://github.com/lockss/laaws-dev-scripts)
 project `bin/runservice -j` script.
 
-The log is at `./laaws-composed/logs/app.log`.
+The log is at `./allServices-composed/logs/app.log`.
 
 The API is documented at <http://127.0.0.1:24690/swagger-ui.html>.
 
@@ -61,4 +61,3 @@ The status of the composed web service may be obtained at
 
 The administration UI of the composed web service is at
 <http://127.0.0.1:24691>.
-
