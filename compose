@@ -31,11 +31,12 @@ usage() {
   echo "profile is the name of the set of services to be composed"
   echo "Options:"
   echo "  -o <dir> The output directory. Default 'laaws_composed'"
-  echo "  -p       Preserve temporary files on exit"
+  echo "  -p       Preserve temporary local files on exit"
 }
 
 # Remove the output directory.
 cleanup_output() {
+  echo $0: Remove files from output directory $output_dir
   /bin/rm -rf $output_dir
 }
 
@@ -43,12 +44,17 @@ cleanup_output() {
 cleanup() {
   cleanup_output
 
-  while read -u3 project_name; do
-    # Cleanup of the code of this project, if necessary.
+  while read -u3 service_name; do
+    # Cleanup of the code of this service, if necessary.
     if [ -z $preserve ]; then
-      /bin/rm -rf ${project_name}
+      # Get the base name of the service.
+      base_service_name=$(basename ${service_name})
+      echo $0: Remove $base_service_name local files before exit
+      /bin/rm -rf $base_service_name
     fi
-  done 3< ${compose_profile}/projects
+  done 3< ${compose_profile}/services
+
+  exit
 }
 
 output_dir=laaws-composed
@@ -77,74 +83,92 @@ while [ -n "$1" ]; do
   break;
 done
 
-echo output_dir=$output_dir
-echo preserve=$preserve
-echo compose_profile=$compose_profile
+echo $0: Output directory is $output_dir
+
+if [ -z $preserve ]; then
+  echo $0: Temporary local files will not be preserved
+else
+  echo $0: Temporary local files will be preserved
+fi
+
+echo $0: Compose profile is $compose_profile
 
 # Reset the contents of the output directory.
 cleanup_output
 /bin/mkdir ${output_dir}
 
-# Loop through all the projects to be composed.
-while read -u3 project_name; do
-  echo "Begin processing service $project_name"
+# Loop through all the services to be composed.
+while read -u3 service_name; do
+  echo $0: Start of processing of service $service_name
 
-  # Get the base name of the project.
-  base_project_name=$(basename ${project_name})
-  echo base_project_name=$base_project_name
+  # Get the base name of the service.
+  base_service_name=$(basename ${service_name})
 
-  # Check whether the project name is really a path.
-  if [ "$project_name" != "$base_project_name" ]; then
-    # Yes: Check that the project exists.
-    if [ -d $project_name ]; then
-      # Yes: Make a local copy the existing project.
-      echo Making a copy of the project $project_name 
-      /bin/cp -r ${project_name} ${base_project_name}
+  # Check whether the service name is really a path.
+  if [ "$service_name" != "$base_service_name" ]; then
+    # Yes: Check that the service exists.
+    if [ -d $service_name ]; then
+      # Yes: Make a local copy the existing service.
+      echo $0: Make a copy of the service $service_name 
+      /bin/cp -r ${service_name} ${base_service_name}
 
-      # Reset the project name to point to the local copy.
-      project_name=$base_project_name
+      # Reset the service name to point to the local copy.
+      #service_name=$base_service_name
 
-      # Clean the project.
-      echo Cleaning $project_name
-      mvn -f ${project_name}/pom.xml clean
+      # Clean the service.
+      echo $0: Clean service $base_service_name
+      mvn -f ${base_service_name}/pom.xml clean
     else
-      # No: Skip the project because it does not exist.
-      echo Project $project_name does not exist. Skipping...
+      # No: Skip the service because it does not exist.
+      echo $0: Service $service_name does not exist. Skipping...
     fi
   else
-    # Get a clean copy of the project to be composed.
-    echo Deleting $project_name
-    /bin/rm -rf $project_name
-    git clone -b develop https://github.com/lockss/${project_name}.git
+    # Get a clean copy of the service to be composed.
+    echo $0: Remove any previously existing $base_service_name local files
+    /bin/rm -rf $base_service_name
+    echo $0: Get a copy of the $base_service_name service files from the repository
+    git clone -b develop https://github.com/lockss/${base_service_name}.git
   fi
 
-  # Check that there is a project to be processed.
-  if [ -d $project_name ]; then
-    # Yes: Generate the project code.
-    mvn -f ${project_name}/pom.xml generate-sources
+  # Check that there is a service to be processed.
+  if [ -d $base_service_name ]; then
+    # Yes: Generate the service code.
+    echo $0: Generate sources of the $base_service_name service
+    mvn -f ${base_service_name}/pom.xml generate-sources
 
-    # Remove project conflicting files.
-    /bin/rm -rf ${project_name}/src/generated/java/org/lockss/laaws/*/config
-    /bin/rm -rf ${project_name}/src/main/java/org/lockss/laaws/*/security
-    /bin/rm -f ${project_name}/src/main/java/org/lockss/laaws/*/*Application.java
-    /bin/rm -rf ${project_name}/src/main/resources/swagger
+    # Remove service conflicting files.
+    echo $0: Remove conflicting local files from the $base_service_name service
+    /bin/rm -rf ${base_service_name}/src/generated/java/org/lockss/laaws/*/config
+    /bin/rm -rf ${base_service_name}/src/main/java/org/lockss/laaws/*/security
+    /bin/rm -f ${base_service_name}/src/main/java/org/lockss/laaws/*/*Application.java
+    /bin/rm -rf ${base_service_name}/src/main/resources/swagger
 
-    # Copy the project source code files to the output.
-    /bin/cp -r ${project_name}/src ${output_dir}
-
-    # Copy the project test files to the output.
-    if [ -d ${project_name}/test ]; then
-      /bin/cp -r ${project_name}/test ${output_dir}
+    if [ -n "$(/bin/ls ${output_dir}/src/generated/java/org/lockss/laaws/*/api/StatusApi.java 2> /dev/null)" ]; then
+      echo $0: Remove duplicate Status API local files from the $base_service_name service
+      /bin/rm -f ${base_service_name}/src/generated/java/org/lockss/laaws/*/api/StatusApi*.java
+      /bin/rm -f ${base_service_name}/src/main/java/org/lockss/laaws/*/impl/StatusApi*.java
+      /bin/rm -f ${base_service_name}/src/test/java/org/lockss/laaws/*/impl/TestStatusApi*.java
     fi
 
-    # Cleanup of the code of this project, if necessary.
+    # Copy the service source code files to the output.
+    echo $0: Copy source files from the $base_service_name service to output directory $output_dir
+    /bin/cp -r ${base_service_name}/src ${output_dir}
+
+    # Copy the service test files to the output.
+    if [ -d ${base_service_name}/test ]; then
+      echo $0: Copy test files from the $base_service_name service to output directory $output_dir
+      /bin/cp -r ${base_service_name}/test ${output_dir}
+    fi
+
+    # Cleanup of the code of this service, if necessary.
     if [ -z $preserve ]; then
-      /bin/rm -rf ${project_name}
+      echo $0: Remove $base_service_name local files
+      /bin/rm -rf ${base_service_name}
     fi
 
-    echo "End processing service $project_name"
+    echo $0: End of processing of service $service_name
   fi
-done 3< ${compose_profile}/projects
+done 3< ${compose_profile}/services
 
 # Copy the profile configuration files to the output.
 /bin/cp -r ${compose_profile}/config ${output_dir}
