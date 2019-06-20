@@ -118,9 +118,6 @@ while read -u3 service_name; do
       echo $0: Make a copy of the service $service_name 
       /bin/cp -r ${service_name} ${base_service_name}
 
-      # Reset the service name to point to the local copy.
-      #service_name=$base_service_name
-
       # Clean the service.
       echo $0: Clean service $base_service_name
       mvn -f ${base_service_name}/pom.xml clean
@@ -146,6 +143,7 @@ while read -u3 service_name; do
     echo $0: Remove conflicting local files from the $base_service_name service
     /bin/rm -rf ${base_service_name}/src/generated/java/org/lockss/laaws/*/config
     /bin/rm -rf ${base_service_name}/src/main/java/org/lockss/laaws/*/security
+    /bin/rm -f ${base_service_name}/src/main/java/org/lockss/laaws/*/Swagger2SpringBoot.java
     /bin/rm -f ${base_service_name}/src/main/java/org/lockss/laaws/*/*Application.java
     /bin/rm -rf ${base_service_name}/src/main/resources/swagger
 
